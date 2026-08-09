@@ -1,6 +1,5 @@
 #!/bin/zsh
 set -u
-set -o pipefail
 
 readonly PATCH_FONT_REL='CookedPC/globals/gui/fonts.swf'
 readonly PATCH_CSV_REL='CookedPC/globals/gui/fonts/fonts.csv'
@@ -144,9 +143,6 @@ function parseEntries(bytes) {
 }
 
 function extractEntry(bytes, entry, tableOffset) {
-  if (entry.size < 0 || entry.compressedSize < 0 || entry.offset < 0) {
-    throw new Error('invalid archive');
-  }
   if (entry.offset > tableOffset || entry.compressedSize > tableOffset - entry.offset) {
     throw new Error('invalid archive');
   }
@@ -163,12 +159,9 @@ function extractEntry(bytes, entry, tableOffset) {
   for (let blockIndex = 0; blockIndex < blockCount; blockIndex += 1) {
     const start = boundaries[blockIndex];
     const end = boundaries[blockIndex + 1];
-    if (start < minimumBlockOffset || end < start || end > entry.offset + entry.compressedSize || end > bytes.length) {
+    if (start < minimumBlockOffset || end < start || end > entry.offset + entry.compressedSize) {
       throw new Error('invalid archive');
     }
-  }
-  if (entry.offset + entry.compressedSize > bytes.length) {
-    throw new Error('invalid archive');
   }
 
   const output = new Uint8Array(entry.size);
@@ -321,42 +314,18 @@ resolve_game_dir() {
   die '유효한 The Witcher 2 Steam 게임 폴더가 아닙니다.'
 }
 
-list_process_commands() {
-  /bin/ps -ax -o command=
-}
-
-game_is_running() {
-  local game_dir="$1"
-  local executable="$game_dir/The Witcher 2.app/Contents/MacOS/The Witcher 2"
-  local command process_commands
-  process_commands="$(list_process_commands)" || {
-    die '실행 중인 게임 프로세스를 확인할 수 없습니다.'
-    return 2
-  }
-  while IFS= read -r command; do
-    [[ "$command" == *"$executable"* ]] && return 0
-  done <<< "$process_commands"
-  return 1
-}
-
 ensure_game_is_not_running() {
   local game_dir="$1"
-  local running_status
-  game_is_running "$game_dir"
-  running_status=$?
-  case "$running_status" in
-    0)
-      die '게임이 실행 중이므로 이 작업을 수행할 수 없습니다.'
-      return 1
-      ;;
-    1)
-      return 0
-      ;;
-    *)
-      die '게임 실행 상태를 확인할 수 없어 이 작업을 수행하지 않습니다.'
-      return 1
-      ;;
-  esac
+  local executable="$game_dir/The Witcher 2.app/Contents/MacOS/The Witcher 2"
+  local process_commands
+  process_commands="$(/bin/ps -ax -o command=)" || {
+    die '게임 실행 상태를 확인할 수 없어 이 작업을 수행하지 않습니다.'
+    return 1
+  }
+  if [[ "$process_commands" == *"$executable"* ]]; then
+    die '게임이 실행 중이므로 이 작업을 수행할 수 없습니다.'
+    return 1
+  fi
 }
 
 install_patch() {
@@ -365,7 +334,7 @@ install_patch() {
   local target_csv="$game_dir/$PATCH_CSV_REL"
 
   ensure_game_is_not_running "$game_dir" || return 1
-  /bin/mkdir -p "${target_swf:h}" "${target_csv:h}" || {
+  /bin/mkdir -p "${target_csv:h}" || {
     die '패치 폴더를 만들지 못했습니다.'
     return 1
   }
