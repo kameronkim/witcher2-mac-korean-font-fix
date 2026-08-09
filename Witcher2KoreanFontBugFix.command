@@ -227,6 +227,33 @@ function run(argv) {
 JXA
 }
 
+show_install_progress() {
+  local dots=''
+  while true; do
+    dots+='.'
+    (( ${#dots} > 3 )) && dots=''
+    print -n -- "\r한국어 글꼴 설치 중${dots}   "
+    /bin/sleep 0.4
+  done
+}
+
+run_extractor_with_progress() {
+  local spinner_pid
+  local exit_code=1
+
+  show_install_progress &
+  spinner_pid=$!
+  {
+    run_extractor "$@"
+    exit_code=$?
+  } always {
+    kill "$spinner_pid" 2>/dev/null || true
+    wait "$spinner_pid" 2>/dev/null || true
+    print -n -- $'\r\e[K'
+  }
+  return "$exit_code"
+}
+
 write_fonts_csv() {
   local output="$1"
   /usr/bin/osascript -l JavaScript - "$output" 2>/dev/null <<'JXA'
@@ -339,7 +366,7 @@ install_patch() {
     return 1
   }
 
-  run_extractor "$game_dir/$SOURCE_ARCHIVE_REL" "$target_swf" || {
+  run_extractor_with_progress "$game_dir/$SOURCE_ARCHIVE_REL" "$target_swf" || {
     die '한국어 글꼴을 준비하지 못했습니다.'
     print -u2 -- 'Steam 무결성 검사를 실행한 뒤 다시 시도해 주세요.'
     return 1
