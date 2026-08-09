@@ -5,7 +5,7 @@ Steam Mac판 The Witcher 2에서 한국어 폰트가 보이지 않는 버그를 
 ## 사용 방법
 
 1. 저장소의 ZIP 파일을 내려받아 압축을 풉니다.
-2. `Witcher2KoreanFontBugFix.command`를 더블클릭합니다.
+2. `Witcher2KoreanFontBugFix.command`를 실행합니다.
 3. `1. 패치 설치/업데이트`를 선택합니다.
 4. 표시된 게임 경로를 확인하고 `y`를 입력합니다.
 5. 설치 후 게임을 실행해 한국어 메뉴와 자막을 확인합니다.
