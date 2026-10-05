@@ -8,7 +8,17 @@ final class PatchModel: ObservableObject {
     @Published var state = InstallationState()
     @Published var busy = false {
         didSet {
-            showsProgress = busy
+            guard busy != oldValue else { return }
+            progressTask?.cancel()
+            showsProgress = false
+            if busy {
+                progressTask = Task { [weak self] in
+                    do { try await Task.sleep(nanoseconds: 200_000_000) }
+                    catch { return }
+                    guard let self, self.busy, !Task.isCancelled else { return }
+                    self.showsProgress = true
+                }
+            }
         }
     }
     @Published private(set) var showsProgress = false
@@ -17,6 +27,7 @@ final class PatchModel: ObservableObject {
     @Published var lastAction: PatchAction?
     let service = PatchService()
     private var discovery: Task<[URL], Error>?
+    private var progressTask: Task<Void, Never>?
 
     var isCheckingState: Bool { busy && lastAction == nil }
     var isSearching: Bool { isCheckingState && folder == nil }

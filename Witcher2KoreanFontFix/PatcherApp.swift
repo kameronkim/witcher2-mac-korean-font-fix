@@ -111,7 +111,6 @@ struct PatcherView: View {
             }
         } label: { Image(systemName: "ellipsis").font(.system(size: 15)).foregroundStyle(.secondary) }
         .menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize().accessibilityLabel("추가 작업")
-        .disabled(model.busy)
     }
 
     private func exception(_ heading: (String, String)) -> some View {
