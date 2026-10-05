@@ -1,30 +1,31 @@
-# The Witcher 2 Mac 버전 한국어 폰트 버그 수정
+<h1><img src="Witcher2KoreanFontFix/Resources/AppIcon.png" alt="" width="64" height="64" align="absmiddle"> The Witcher 2 Korean Font Fix</h1>
 
-Steam Mac판 The Witcher 2에서 한국어 폰트가 보이지 않는 버그를 해결하는 패치입니다.
+Steam Mac판 The Witcher 2에서 한국어 텍스트가 보이지 않는 문제를 해결하는 앱입니다. 폰트 패치와 한국어 설정을 적용합니다.
 
-## 사용 방법
+[릴리즈](https://github.com/kameronkim/witcher2-mac-korean-font-fix/releases)
 
-1. [Releases](https://github.com/kameronkim/witcher2-mac-korean-font-fix/releases)에서 최신 ZIP 파일을 내려받아 압축을 풉니다.
-2. Steam에서 게임 언어를 한국어로 설정하고, 게임이 실행 중이라면 종료합니다.
-3. `Witcher2KoreanFontBugFix.command`를 실행합니다.
-4. `1. 패치 설치/업데이트`를 선택합니다.
-5. 표시된 게임 경로를 확인하고 `y`를 입력합니다.
-6. `패치를 설치했습니다.`가 표시될 때까지 기다립니다. 설치에는 약 30초가 걸릴 수 있습니다.
-7. 게임을 실행해 한국어 메뉴와 자막을 확인합니다.
+## 시작하기
 
-패처는 Steam 설치 경로를 자동으로 찾습니다. 찾지 못하면 게임 폴더를 Terminal 창으로 드래그하세요.
+게임을 종료한 뒤 `Witcher2KoreanFontFix.app`을 실행하세요. Steam 라이브러리에서 게임을 자동으로 찾아 상태를 표시합니다.
+
+1. **설치**를 선택합니다.
+2. 패치 상태가 **설치됨**으로 바뀌면 게임을 실행합니다.
+3. 한국어 메뉴와 자막이 표시되는지 확인합니다.
+
+게임을 찾지 못하면 게임 폴더 또는 `The Witcher 2.app`을 앱 창에 놓으세요.
+
+## 상태 확인
+
+**언어**는 게임 언어를 표시합니다. **패치**는 폰트와 한국어 설정이 적용되면 **설치됨**, 그 외에는 **설치 필요**로 표시합니다.
+
+작업에 실패하면 **다시 시도**를 선택하세요.
+
+설치는 폰트 파일을 덮어쓰고 게임 언어를 한국어로 설정합니다. 음성 설정과 Steam의 언어 선택은 변경하지 않습니다.
+
+## 패치 제거
+
+**제거**를 선택하면 폰트 패치를 제거합니다. 게임 언어 설정은 유지됩니다.
 
 ## macOS가 실행을 차단할 때
 
-처음 실행이 차단되면 시스템 설정 > 개인정보 보호 및 보안에서 실행을 허용한 뒤 다시 시도하세요. 자세한 방법은 [Apple 공식 안내](https://support.apple.com/ko-kr/guide/mac-help/mh40616/mac)를 참고하세요.
-
-## 변경하는 파일
-
-- `CookedPC/globals/gui/fonts.swf`
-- `CookedPC/globals/gui/fonts/fonts.csv`
-
-설치/업데이트는 위 두 파일을 덮어씁니다. 제거는 위 두 파일을 삭제합니다.
-
-## 제거 및 복구
-
-메뉴에서 `2. 패치 제거`를 선택합니다. 원래 설치 상태로 되돌리거나 오류가 계속되면 Steam에서 설치 파일 무결성 검사를 실행하세요.
+실행 허용 방법은 [Apple 공식 안내](https://support.apple.com/ko-kr/guide/mac-help/mh40616/mac)를 참고하세요.
