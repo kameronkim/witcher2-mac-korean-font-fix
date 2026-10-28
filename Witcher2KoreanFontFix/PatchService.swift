@@ -20,15 +20,16 @@ struct PatchService: Sendable {
         let ini = Self.userINI(home: home)
         var text = FileManager.default.fileExists(atPath: ini.path) ? try String(contentsOf: ini, encoding: .utf8) : ""
         let newline = text.contains("\r\n") ? "\r\n" : "\n"
-        let setting = try NSRegularExpression(pattern: #"(?m)^(\h*Language\h*=\h*)[^\r\n]*"#)
-        let range = NSRange(text.startIndex..., in: text)
-        if setting.firstMatch(in: text, range: range) != nil {
-            text = setting.stringByReplacingMatches(in: text, range: range, withTemplate: "$1KR")
-        } else if let section = text.range(of: #"(?m)^\[linux\]\h*\r?(?:\n|$)"#, options: .regularExpression) {
-            let separator = text[section].hasSuffix("\n") ? "" : newline
-            text.insert(contentsOf: separator + "Language=KR" + newline, at: section.upperBound)
+        let endsWithNewline = text.hasSuffix("\n") || text.hasSuffix("\r\n")
+        let values = Self.languageValues(in: text)
+        if !values.isEmpty {
+            // Replace only values, retaining key spacing, comments and line endings.
+            for value in values.reversed() { text.replaceSubrange(value, with: "KR") }
+        } else if let section = Self.linuxSection(in: text) {
+            let separator = section.lowerBound == text.endIndex && !endsWithNewline ? newline : ""
+            text.insert(contentsOf: separator + "Language=KR" + newline, at: section.lowerBound)
         } else {
-            if !text.isEmpty && !text.hasSuffix("\n") { text += newline }
+            if !text.isEmpty && !endsWithNewline { text += newline }
             text += "[linux]" + newline + "Language=KR" + newline
         }
         try FileManager.default.createDirectory(at: ini.deletingLastPathComponent(), withIntermediateDirectories: true)
@@ -54,8 +55,32 @@ struct PatchService: Sendable {
         return folder.resolvingSymlinksInPath().standardizedFileURL
     }
 
+    private static let sectionHeader = try! NSRegularExpression(
+        pattern: #"(?m)^\h*\[([^\]\r\n]+)\]\h*(?:[;#][^\r\n]*)?(?:\r\n|\n|$)"#)
+    private static let languageSetting = try! NSRegularExpression(
+        pattern: #"(?m)^\h*Language\h*=\h*([^;#\r\n]*?)(\h*)(?=[;#\r\n]|$)"#)
+
+    private static func linuxSection(in text: String) -> Range<String.Index>? {
+        let headers = sectionHeader.matches(in: text, range: NSRange(text.startIndex..., in: text))
+        for (index, header) in headers.enumerated() {
+            guard let name = Range(header.range(at: 1), in: text), text[name] == "linux" else { continue }
+            let start = NSMaxRange(header.range)
+            let end = index + 1 < headers.count ? headers[index + 1].range.location : text.utf16.count
+            return Range(NSRange(location: start, length: end - start), in: text)
+        }
+        return nil
+    }
+
+    private static func languageValues(in text: String) -> [Range<String.Index>] {
+        guard let section = linuxSection(in: text) else { return [] }
+        return languageSetting.matches(in: text, range: NSRange(section, in: text)).compactMap {
+            Range($0.range(at: 1), in: text)
+        }
+    }
+
     static func hasKoreanSetting(_ text: String) -> Bool {
-        text.range(of: #"(?m)^\h*Language\h*=\h*KR\h*\r?$"#, options: .regularExpression) != nil
+        let values = languageValues(in: text)
+        return !values.isEmpty && values.allSatisfy { text[$0] == "KR" }
     }
 
     func discover(home: URL = FileManager.default.homeDirectoryForCurrentUser) throws -> [URL] {
@@ -121,7 +146,10 @@ struct PatchService: Sendable {
         let ini = Self.userINI(home: home)
         let setting = try? String(contentsOf: ini, encoding: .utf8)
         let korean = setting.map(Self.hasKoreanSetting) ?? false
-        let languageKnown = setting?.range(of: #"(?m)^\h*Language\h*=\h*\S+\h*\r?$"#, options: .regularExpression) != nil
+        let languageKnown = setting.map {
+            let values = Self.languageValues(in: $0)
+            return !values.isEmpty && values.allSatisfy { !$0.isEmpty }
+        } ?? false
         let count = Self.fontFiles.filter {
             var directory: ObjCBool = false
             return FileManager.default.fileExists(atPath: folder.appendingPathComponent($0).path, isDirectory: &directory) && !directory.boolValue
