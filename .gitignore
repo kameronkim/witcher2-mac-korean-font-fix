@@ -1,3 +1,13 @@
-.build/
-dist/
+# Build output and SwiftPM workspace data
+/.build/
+/.swiftpm/
+/dist/
+
+# Local development files
+/Makefile
+/Tests/
+/Tools/
+/scripts/
+
+# macOS metadata
 .DS_Store
